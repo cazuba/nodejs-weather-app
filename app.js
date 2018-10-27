@@ -1,5 +1,7 @@
-const request = require('request');
 const yargs = require('yargs');
+
+const geocode = require('./geocode');
+const weather = require('./weather');
 
 const { argv } = yargs
     .options({
@@ -10,22 +12,27 @@ const { argv } = yargs
             string: true
         }
     })
-    .alias('help', 'h')
-    .help();
-const mapsApiKey = 'm79cyxCHr70h9wAJk1zKweDUkRxmgUgD';
-const baseUrl = 'http://www.mapquestapi.com/geocoding/v1/address?'
-console.log(argv.address);
+    .help()
+    .alias('help', 'h');
+
 const { address } = argv;
-console.log(`${baseUrl}location=${encodeURIComponent(address)}&key=${mapsApiKey}`, "\n");
-request({
-    url: `${baseUrl}location=${encodeURIComponent(address)}&key=${mapsApiKey}`,
-    json: true
-}, (err, response, body) => {
-    const data = response.body;
-    const { results } = data;
-    const { locations, providedLocation } = results[0];
+
+geocode.geocodeAddress(address, (err, results) => {
+    if (err) {
+        console.log(err);
+        return;
+    }
+    const { locations, providedLocation } = results;
     const { latLng, mapUrl } = locations[0];
     console.log(`Address: ${providedLocation.location}`);
     console.log(`Lat: ${latLng.lat} | Long: ${latLng.lng}`);
     console.log(`MAP URL: ${mapUrl}`);
+
+    weather.getWeather(latLng.lat, latLng.lng, (errWeather, weatherResults) => {
+        if (errWeather) {
+            console.log(errWeather);
+        } else {
+            console.log(`It's currently ${weatherResults.temperature}. It feels like ${weatherResults.apparentTemperature}`);
+        }
+    });
 });
