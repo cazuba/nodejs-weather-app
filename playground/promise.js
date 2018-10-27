@@ -25,8 +25,11 @@ somePromise.then((rs) => {
 // SUCCESS MESSAGE
 asyncAdd(2, 3).then((rs) => {
     console.log(rs);
-}, (errMsg) => {
-    console.log(errMsg);
+    return asyncAdd(rs, 30);
+}).then((rs) => {
+    console.log('Should be 35: ', rs);
+}).catch((errMessage) => {
+console.log("Error: ", errMessage);
 });
 
 
